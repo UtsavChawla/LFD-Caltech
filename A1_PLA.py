@@ -42,14 +42,19 @@ def pla(data):
         data['g'] = -1
         data.loc[data['graw'] >= 0, 'g'] = 1
         missclassified = data[(data['g'] != data['iy'])]
+        missclassified = missclassified.reset_index(drop=True)
+        if(num>1000):
+            print("Fcuk")
+            break
         if(len(missclassified) == 0):
             break
         num = num + 1
         index = rd.randint(0, len(missclassified) - 1)
+        tp = np.asarray(missclassified.loc[:, 'ix0':'ix2'])
         if(missclassified.iloc[index]['g'] == 1):
-            w = w - features[index]
+            w = w - tp[index]
         else:
-            w = w + features[index]
+            w = w + tp[index]
 
     return w,num
 
@@ -70,12 +75,3 @@ def plotcurve(data, wieght):
     plt.ylabel('x2')
     plt.legend()
     plt.show()
-
-
-#Finally Executing
-data = datacreation(10)[0]
-output = pla(data)
-wieghts = output[0]
-num = output[1]
-
-plotcurve(data, wieghts)
