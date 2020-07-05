@@ -75,3 +75,40 @@ def plotcurve(data, wieght):
     plt.ylabel('x2')
     plt.legend()
     plt.show()
+
+def approxerror(iw, ow):
+    #Creating random sample of 25 values
+    x = 100
+    sample = pd.DataFrame((np.random.rand(100, 2) * 2) - 1, columns=['ix1', 'ix2'])
+    sample['ix0'] = 1
+    cols = sample.columns.tolist()
+    cols = cols[-1:] + cols[:-1]
+    sample = sample[cols]
+
+    #Calculating Error
+    features = np.asarray(sample.loc[:, 'ix0':'ix2'])
+    sample['fval'] = np.dot(features, iw.transpose())
+    sample['gval'] = np.dot(features, ow.transpose())
+    return float(sample[(sample['fval'] * sample['gval'] < 0)].count()[0]/x)
+
+
+## Getting average iterations
+num = 0
+N = 100
+for i in range(1000):
+    print(i)
+    data = datacreation(N)[0]
+    output = pla(data)
+    num = num + output[1]
+
+## Getting average P(f != g)
+P = 0
+N = 100
+for i in range(1000):
+    print(i)
+    input = datacreation(N)
+    data = input[0]
+    iw = input[1]
+    output = pla(data)
+    ow = output[0]
+    P = P + approxerror(iw,ow)
