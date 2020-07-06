@@ -22,3 +22,20 @@ for i in range(num_iter):
     print(i)
     output = cointoss(num_coin, num_toss)
     v[i] = output
+
+# Checking for Hoeffding Inequality
+u = v.copy()
+v[:,0] = 0.5
+v[:,1] = 0.5
+v[:,2] = 0
+
+delta = abs(np.subtract(v,u))
+
+d1 = delta[:,0]
+p1 = np.count_nonzero(d1>0.29)/100000
+
+drand = delta[:,1]
+prand = np.count_nonzero(drand>0.29)/100000
+
+dmin = delta[:,2]
+pmin = np.count_nonzero(dmin>0.29)
