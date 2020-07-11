@@ -84,7 +84,42 @@ def erroroutcompute(iw_record,ow_record):
     return float(errorsum/len(iw_record))
 
 
-N = 100
+def pla(data, w):
+    #Converting dataframe to matrix
+    features = np.asarray(data.loc[:, 'ix0':'ix2'])
+    # set weights to zero
+
+    # Iterating till convergence
+    num =0
+    data['graw'] = np.dot(features, w.transpose())
+    data['g'] = -1
+    data.loc[data['graw'] >= 0, 'g'] = 1
+    missclassified = data[(data['g'] != data['iy'])]
+    missclassified = missclassified.reset_index(drop=True)
+
+    while(len(missclassified) > 0):
+        data['graw'] = np.dot(features, w.transpose())
+        data['g'] = -1
+        data.loc[data['graw'] >= 0, 'g'] = 1
+        missclassified = data[(data['g'] != data['iy'])]
+        missclassified = missclassified.reset_index(drop=True)
+        if(num>1000):
+            print("Fcuk")
+            break
+        if(len(missclassified) == 0):
+            break
+        num = num + 1
+        index = rd.randint(0, len(missclassified) - 1)
+        tp = np.asarray(missclassified.loc[:, 'ix0':'ix2'])
+        if(missclassified.iloc[index]['g'] == 1):
+            w = w - tp[index]
+        else:
+            w = w + tp[index]
+
+    return w,num
+
+####### Regression
+N = 10
 runs = 1000
 iw_record = np.zeros((runs,3))
 ow_record = np.zeros((runs,3))
@@ -102,3 +137,20 @@ for i in range(runs):
 
 error_in = errorsum/runs
 error_out = erroroutcompute(iw_record, ow_record)
+
+####### Regression followed by PLA
+N=10
+runs = 1000
+num = 0
+
+for i in range(runs):
+    print(i)
+    input = datacreation(N)
+    data = input[0]
+    iw = input[1]
+    ow = regress(data)
+    output = pla(data, ow)
+    xw = output[0]
+    num = num + output[1]
+
+num = num / 1000
