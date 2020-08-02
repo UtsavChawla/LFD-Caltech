@@ -1,8 +1,10 @@
 import numpy as np
 import pandas as pd
 import math as mt
+from sklearn.linear_model import LinearRegression
 
 
+## Returns data
 def sindata(N):
     # Row 0 is x and Row 1 is y
     data = pd.DataFrame(np.random.uniform(low=-1, high=1, size=(N, 2)), columns=list('xy'))
@@ -10,47 +12,87 @@ def sindata(N):
     return data
 
 
-def learn(data):
-    a = (data['x'] * data['y']).sum() / (data['x'] ** 2).sum()
-    return a
+## Returns output coffecients in a tuple
+def learn(data, ftype):
+    if (ftype == 'a'):
+        ## Linear regression with x -> 0
+        x = np.array(data['x'] * 0).reshape((-1, 1))
+        y = np.array(data['y'])
+        model = LinearRegression().fit(x, y)
+    elif (ftype == 'b'):
+        ## Linear regression with normal x
+        x = np.array(data['x']).reshape((-1, 1))
+        y = np.array(data['y'])
+        model = LinearRegression(fit_intercept=False).fit(x, y)
+    elif (ftype == 'c'):
+        ## Linear regression with normal x
+        x = np.array(data['x']).reshape((-1, 1))
+        y = np.array(data['y'])
+        model = LinearRegression().fit(x, y)
+    elif (ftype == 'd'):
+        ## Linear regression with normal x
+        x = np.array(data['x'] ** 2).reshape((-1, 1))
+        y = np.array(data['y'])
+        model = LinearRegression(fit_intercept=False).fit(x, y)
+    elif (ftype == 'e'):
+        ## Linear regression with normal x
+        x = np.array(data['x'] ** 2).reshape((-1, 1))
+        y = np.array(data['y'])
+        model = LinearRegression().fit(x, y)
+
+    return model.coef_[0], model.intercept_
 
 
-def gbar():
-    a = 0
-    N = 2
-    run = 1000
-    for i in range(run):
-        a = a + learn(sindata(N))
-
-    return a / run
+## Returns output mean coefficients in array
+def gbar(Datasize, ftype):
+    runs = 1000
+    return np.mean(np.array([learn(sindata(Datasize), ftype) for i in range(runs)]), axis=0)
 
 
-def bias(a):
-    bias = 0
-    run = 100
-    ip = 2 / run
-    x = -1
-    for i in range(run):
-        x = x + ip
-        bias = bias + ((mt.sin(3.14 * x) - (a * x)) ** 2)
+## Returns float bias
+def cal_bias(output, ftype):
+    a = output[0]
+    b = output[1]
+    sett = pd.DataFrame(np.arange(-1, 1, 0.02), columns=list('x'))
 
-    return bias / run
+    if (ftype in list('abc')):
+        sett['bias'] = sett.apply(lambda row: (a * row['x'] + b - mt.sin(3.14 * row['x'])) ** 2, axis=1)
+    else:
+        sett['bias'] = sett.apply(lambda row: (a * (row['x'] ** 2) + b - mt.sin(3.14 * row['x'])) ** 2, axis=1)
+
+    return sett['bias'].mean()
 
 
-def var(a):
-    N = 2
-    runs = 10000
+## Returns float variance
+def cal_var(output, Datasize, ftype):
+    am = output[0]
+    bm = output[1]
+
     var = 0
+    runs = 1000
     for i in range(runs):
-        print(i)
-        data = sindata(N)
-        k = learn(data)
-        var = var + (abs(a - k) * (data['x'] ** 2).sum() / N)
+        data = sindata(Datasize)
+        if (ftype in ('de')):
+            data['x'] = data['x'] ** 2
+        temp = learn(data, ftype)
+        a = temp[0]
+        b = temp[1]
+        data['var'] = ((a - am) * data['x'] + (b - bm)) ** 2
+        var = var + data['var'].mean()
 
     return var / runs
 
+## Final computations
 
-## f(x) = sin(Pi*x) and g(x) = ax --> getting a
-a = gbar()
-bias = bias(a)
-var = var(a)
+Datasize = 2
+final = pd.DataFrame(columns=['bias', 'var'], index=list('abcde'))
+## ftype can have 5 values - (a)b (b)ax (c)ax+b (d)ax^2 and (e)ax^2+b
+
+for ftype in list('abcde'):
+    print(ftype)
+    output = gbar(Datasize, ftype)
+    bias = cal_bias(output, ftype)
+    var = cal_var(output, Datasize, ftype)
+    final.loc[ftype] = [bias, var]
+
+final['error'] = final['bias'] + final['var']
