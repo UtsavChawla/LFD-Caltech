@@ -96,5 +96,3 @@ for ftype in list('abcde'):
     final.loc[ftype] = [bias, var]
 
 final['error'] = final['bias'] + final['var']
-
-## Checking out some github credentials
