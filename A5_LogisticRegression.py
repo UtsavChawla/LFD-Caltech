@@ -57,7 +57,7 @@ def logisticregression(data):
 
     while (delta > 0.01):
 
-        if(runs % 100 == 0):
+        if (runs % 100 == 0):
             print(runs)
 
         ow_old = ow
@@ -75,10 +75,26 @@ def logisticregression(data):
     return ow, runs
 
 
+def crossentropyerro(eN, iw, ow):
+    eN = 1000
+    edata = labeleddata(1000, iw)
+    edata['Error'] = 0.1
+
+    for p in range(len(edata)):
+        xn = np.array(edata.iloc[p][0:3])
+        yn = np.array(edata.iloc[p][3:4])
+        E = np.log(1 + np.exp(-yn * np.dot(ow.T, xn))).mean()
+        edata.at[p, 'Error'] = E
+
+    return edata['Error'].mean()
+
+
 # Execution
-execs = 10
+execs = 100
 N = 100
+eN = 1000
 runs = 0
+Eout = 0
 
 for i in range(execs):
     print(i)
@@ -87,20 +103,9 @@ for i in range(execs):
     output = logisticregression(data)
     ow = output[0]
     runs = runs + output[1]
+    Eout = Eout + crossentropyerro(1000,iw,ow)
 
-runs = runs/execs
-
-
+runs = runs / execs
+Eout = Eout / execs
 
 # calculating cross entropy error
-#eN = 1000
-#edata = labeleddata(1000, iw)
-#edata['Error'] = 0.1
-
-#for p in range(len(edata)):
- #   xn = np.array(edata.iloc[p][0:3])
-  #  yn = np.array(edata.iloc[p][3:4])
-   # E = np.log(1 + np.exp(-yn * np.dot(ow.T, xn))).mean()
-    #edata.at[p,'Error'] = E
-
-#error = edata['Error'].mean()
