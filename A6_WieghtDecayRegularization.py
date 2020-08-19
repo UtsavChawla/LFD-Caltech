@@ -27,6 +27,12 @@ def transform(data):
     return Xin, Yin
 
 
+def f(x):
+    if x>0:
+        return 1
+    else:
+        return -1
+
 ## Preparing Data
 # fetchdata()
 data_train = np.loadtxt("in.dta")
@@ -36,5 +42,19 @@ Xin, Yin = data_in
 
 data_out = transform(data_test)
 Xout, Yout = data_out
-# No intercept
-# reg = LinearRegression().fit(Xin, Yin)
+
+# Regressing with no intercept as A = 1
+reg = LinearRegression(fit_intercept=False).fit(Xin, Yin)
+
+# Calculating error
+# Ein
+Yin_pred = np.dot(Xin, reg.coef_)
+Yin_pred = np.array([f(xi) for xi in Yin_pred])
+Ein_tb = abs(Yin - Yin_pred)/2
+Ein = sum(Ein_tb)/len(Ein_tb)
+
+# Eout
+Yout_pred = np.dot(Xout, reg.coef_)
+Yout_pred = np.array([f(xi) for xi in Yout_pred])
+Eout_tb = abs(Yout - Yout_pred)/2
+Eout = sum(Eout_tb)/len(Eout_tb)
