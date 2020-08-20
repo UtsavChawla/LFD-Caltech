@@ -23,8 +23,8 @@ def transform(data):
     Xin['F'] = Xin['x1'] * Xin['x2']
     Xin['G'] = abs(Xin['x1'] - Xin['x2'])
     Xin['H'] = abs(Xin['x1'] + Xin['x2'])
-    Xin = Xin[['A', 'x1', 'x2', 'D', 'E', 'F', 'G']]
-    Xin.columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+    Xin = Xin[['A', 'x1', 'x2', 'D', 'E', 'F', 'G', 'H']]
+    Xin.columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
     Yin = data[:, 2]
     return Xin, Yin
 
@@ -42,7 +42,7 @@ def regress(Xin, Yin, k):
     Lamda = 10 ** k
     Z = Xin.to_numpy()
     Zt = Xin.T.to_numpy()
-    return np.matmul(np.linalg.inv(np.add(np.matmul(Zt, Z), Lamda * np.identity(7))), np.matmul(Zt, Yin))
+    return np.matmul(np.linalg.inv(np.add(np.matmul(Zt, Z), Lamda * np.identity(8))), np.matmul(Zt, Yin))
 
 
 ## Preparing Data
