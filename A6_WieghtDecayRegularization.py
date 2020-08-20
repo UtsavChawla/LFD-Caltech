@@ -42,7 +42,7 @@ def regress(Xin, Yin, k):
     Lamda = 10 ** k
     Z = Xin.to_numpy()
     Zt = Xin.T.to_numpy()
-    return np.dot(np.dot(np.linalg.inv(np.dot(Zt, Z) + (Lamda * np.identity(7))), Zt), Yin)
+    return np.matmul(np.linalg.inv(np.add(np.matmul(Zt, Z), Lamda * np.identity(7))), np.matmul(Zt, Yin))
 
 
 ## Preparing Data
