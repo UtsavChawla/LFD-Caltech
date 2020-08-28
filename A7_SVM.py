@@ -14,7 +14,6 @@ def datacreation(N):
 
     flag = True
     while(flag):
-        print("Yay")
         # Defining function f (iw0*ix0 + iw1*ix1 + iw2*ix2 = 0)
         xf = [rd.uniform(-1, 1), rd.uniform(-1, 1)]
         yf = [rd.uniform(-1, 1), rd.uniform(-1, 1)]
@@ -53,8 +52,50 @@ def plotcurve(data, wieght):
     plt.show()
 
 
-N = 3
+def pla(data):
+    #Converting dataframe to matrix
+    features = np.asarray(data.loc[:, 'ix0':'ix2'])
+    # set weights to zero
+    w = np.zeros(3)
+
+    # Iterating till convergence
+    num =0
+    data['graw'] = np.dot(features, w.transpose())
+    data['g'] = -1
+    data.loc[data['graw'] >= 0, 'g'] = 1
+    missclassified = data[(data['g'] != data['iy'])]
+    missclassified = missclassified.reset_index(drop=True)
+
+    while(len(missclassified) > 0):
+        data['graw'] = np.dot(features, w.transpose())
+        data['g'] = -1
+        data.loc[data['graw'] >= 0, 'g'] = 1
+        missclassified = data[(data['g'] != data['iy'])]
+        missclassified = missclassified.reset_index(drop=True)
+        if(num>1000):
+            print("Fcuk")
+            break
+        if(len(missclassified) == 0):
+            break
+        num = num + 1
+        index = rd.randint(0, len(missclassified) - 1)
+        tp = np.asarray(missclassified.loc[:, 'ix0':'ix2'])
+        if(missclassified.iloc[index]['g'] == 1):
+            w = w - tp[index]
+        else:
+            w = w + tp[index]
+
+    return w,num
+
+############
+## Execution
+N = 10
 input = datacreation(N)
 data_in = input[0]
 iw = input[1]
-plotcurve(data_in, iw)
+#plotcurve(data_in, iw)
+
+## PLA
+ow_pla = pla(data_in)[0]
+plotcurve(data_in, ow_pla)
+
