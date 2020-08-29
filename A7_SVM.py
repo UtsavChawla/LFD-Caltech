@@ -133,21 +133,60 @@ def svm(data_in, N):
     return ow_svm, num_sv
 
 
+def erroroutcompute(iw_record, ow_record):
+    errorsum = 0
+
+    sample = pd.DataFrame((np.random.rand(1000, 2) * 2) - 1, columns=['ix1', 'ix2'])
+    sample['ix0'] = 1
+    cols = sample.columns.tolist()
+    cols = cols[-1:] + cols[:-1]
+    sample = sample[cols]
+    features = np.asarray(sample.loc[:, 'ix0':'ix2'])
+    error_arr = np.zeros(len(iw_record))
+
+    for i in range(len(iw_record)):
+        print(i)
+        iw = iw_record[i]
+        ow = ow_record[i]
+        sample['fraw'] = np.dot(features, iw.transpose())
+        sample['graw'] = np.dot(features, ow.transpose())
+        error_arr[i] = len(sample[(sample['fraw'] * sample['graw'] < 0)]) / len(sample)
+
+    return error_arr
+
+
 ############
 ## Execution
-N = 10
-input = datacreation(N)
-data_in = input[0]
-iw = input[1]
-del input
-# plotcurve(data_in, iw)
+N = 100
+runs = 1000
+iw_record = np.zeros((runs, 3))
+ow_pla_record = np.zeros((runs, 3))
+ow_svm_record = np.zeros((runs, 3))
+n_sv_record = np.zeros((runs))
 
-## PLA
-ow_pla = pla(data_in)[0]
-#plotcurve(data_in, ow_pla)
+for i in range(runs):
+    print(i)
+    input = datacreation(N)
+    data_in = input[0]
+    iw = input[1]
+    del input
+    iw_record[i] = iw
 
-## SVM
-out = svm(data_in, N)
-ow_svm = out[0]
-n_sv = out[1]
-#plotcurve(data_in, ow_svm)
+    ## PLA
+    ow_pla = pla(data_in)[0]
+    ow_pla_record[i] = ow_pla
+
+    ## SVM
+    out = svm(data_in, N)
+    ow_svm = out[0]
+    n_sv = out[1]
+    ow_svm_record[i] = ow_svm
+    n_sv_record[i] = n_sv
+
+## computing reqd answers
+n_sv_avg = n_sv_record.mean()
+error_pla_arr = erroroutcompute(iw_record, ow_pla_record)
+error_svm_arr = erroroutcompute(iw_record, ow_svm_record)
+
+temp = error_pla_arr - error_svm_arr
+ans = len(temp[temp > 0]) / len(temp)
