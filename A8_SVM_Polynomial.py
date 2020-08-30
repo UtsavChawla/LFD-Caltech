@@ -1,6 +1,8 @@
 import numpy as np
+import pandas as pd
 import requests
 from sklearn import svm
+from sklearn.model_selection import KFold, cross_val_score
 
 
 def fetchdata():
@@ -30,7 +32,6 @@ def errorcompute(model, Xtrain, Ytrain):
 # fetchdata()
 data_train = np.loadtxt("train.dta")
 data_test = np.loadtxt("test.dta")
-
 tp1 = data_train[data_train[:,0]==1]
 tp2 = data_train[data_train[:,0]==5]
 tp2[:,0] = -1
@@ -49,11 +50,16 @@ Ytest = data_test[:, 0]
 del data_train, data_test
 
 # Modeling
-for C in [0.0001, 0.001, 0.01, 1]:
-    for Q in [2,5]:
-        model = svm.SVC(C=C, degree=Q, kernel='poly', coef0=1, gamma=1)
-        model.fit(Xtrain, Ytrain)
-        num_sv = len(model.support_vectors_)
-        e_in = errorcompute(model, Xtrain, Ytrain)
-        e_out = errorcompute(model, Xtest, Ytest)
-        print("C=",C,"Q=", Q,"Ein=", e_in,"Eout=", e_out,"numsv=", num_sv)
+mat = pd.DataFrame({'C': [0.0001,0.001,0.01,0.1,1], 'Freq': [0, 0, 0, 0, 0], 'Ecv': [0.0, 0.0, 0.0, 0.0, 0.0]})
+mat = mat.set_index('C')
+
+runs = 100
+for i in range(runs):
+    k_fold = KFold(n_splits=10, shuffle=True)
+    print(i)
+    for C in [0.0001,0.001,0.01,0.1,1.0]:
+        model = svm.SVC(C=C, degree=2, kernel='poly', coef0=1, gamma=1)
+        scores = cross_val_score( model, Xtrain, Ytrain, cv = k_fold)
+        Ecv = 1 - scores.mean()
+        mat.at[C, 'Ecv'] = Ecv
+    mat.at[mat[['Ecv']].idxmin()[0], 'Freq']= mat.at[mat[['Ecv']].idxmin()[0], 'Freq'] + 1
