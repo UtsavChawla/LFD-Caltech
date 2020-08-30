@@ -49,10 +49,11 @@ Ytest = data_test[:, 0]
 del data_train, data_test
 
 # Modeling
-for C in [0.001, 0.01, 0.1, 1]:
-    model = svm.SVC(C=C, degree=2, kernel='poly', coef0=1, gamma=1)
-    model.fit(Xtrain, Ytrain)
-    num_sv = len(model.support_vectors_)
-    e_in = errorcompute(model, Xtrain, Ytrain)
-    e_out = errorcompute(model, Xtest, Ytest)
-    print(C, e_in, e_out, num_sv)
+for C in [0.0001, 0.001, 0.01, 1]:
+    for Q in [2,5]:
+        model = svm.SVC(C=C, degree=Q, kernel='poly', coef0=1, gamma=1)
+        model.fit(Xtrain, Ytrain)
+        num_sv = len(model.support_vectors_)
+        e_in = errorcompute(model, Xtrain, Ytrain)
+        e_out = errorcompute(model, Xtest, Ytest)
+        print("C=",C,"Q=", Q,"Ein=", e_in,"Eout=", e_out,"numsv=", num_sv)
